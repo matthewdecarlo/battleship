@@ -25,7 +25,7 @@ class Board
 
   def gen_board
     ("A".."J").each do |row|
-      (1..10).each { |column| board.merge!( { "#{row}#{column}".to_sym => '~' } ) }
+      (1..10).each { |column| board.merge!( { "#{row}#{column}".to_sym => '🌊' } ) }
     end
 
     return board
@@ -37,15 +37,15 @@ class Board
     letter = "A"
 
     board.each_value { |value| board_array << value }
-    board_string << "    1 2 3 4 5 6 7 8 9 10"
-    board_string << "  +---------------------+"
+    board_string << "    1  2  3  4  5  6  7  8  9  10  "
+    board_string << "  +-------------------------------+"
 
     board_array.each_slice(10) do |row|
       board_string << "#{letter} | " + row.join(" ").gsub(/["0"]/, '_') + " |"
       letter.next!
     end
 
-    board_string << "  +---------------------+"
+    board_string << "  +-------------------------------+"
 
     return board_string
   end
