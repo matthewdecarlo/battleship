@@ -27,7 +27,7 @@ class Board
 
   def gen_board
     ("A".."J").each do |row|
-      (1..10).each { |column| board.merge!( { "#{row}#{column}".to_sym => '1' } ) }
+      (0..9).each { |column| board.merge!( { "#{row}#{column}".to_sym => '0' } ) }
     end
 
     return board
@@ -39,11 +39,11 @@ class Board
     letter = "A"
 
     board.each_value { |value| board_array << value }
-    final_board_array << "    1 2 3 4 5 6 7 8 9 10"
+    final_board_array << "    1 2 3 4 5 6 7 8 9 10 "
     final_board_array << "  +---------------------+"
 
     board_array.each_slice(10) do |row|
-      final_board_array << "#{letter} | " + row.join(" ").gsub(/["0"]/, '🌊') + " |"
+      final_board_array << "#{letter} | " + row.join(" ").gsub(/[012HM]/, '0' => '🌊', '1' => '🚢', '2' => '‼️', 'H' => '📛', 'M' => '😰') + " |"
       letter.next!
     end
 
@@ -83,7 +83,14 @@ class Board
 
     fleet.each { |ship| checks << ship.positions.include?(a_key) }
 
-    return false if checks.include?(true)
+    checks.include?(true)
+  end
+
+  def ship_postions_empty?(range)
+    occupied = []
+    range.each { |key| occupied << position_empty?(key)}
+
+    occupied.include?(true) ? false : true
   end
 
   def gen_range(start_position, end_position, direction)
@@ -101,21 +108,16 @@ class Board
     return range
   end
 
-  def ship_postions_empty?(range)
-    occupied = []
-    range.each { |key| occupied << position_empty?(key)}
-
-    return false if occupied.include?(true)
-  end
-
   def place_ship_horizontaly(a_ship)
-    print a_ship
+    while ship_not_placed?(a_ship)
+
     start_position = get_random_position.to_s
     end_position = start_position.chars
+
     end_position[1] = ( end_position[1].to_i + (a_ship.length - 1) )
     end_position = end_position.join
 
-    while ship_not_placed?(a_ship)
+
       if possible_postion?(end_position.to_sym)
         a_range = gen_range(start_position, end_position, 'horizontal')
 
@@ -125,6 +127,8 @@ class Board
   end
 
   def place_ship_verticaly(a_ship)
+    while ship_not_placed?(a_ship)
+
     start_position = get_random_position.to_s
     letter = start_position[0]
 
@@ -132,7 +136,6 @@ class Board
 
     end_position = letter + start_position[1]
 
-    while ship_not_placed?(a_ship)
       if possible_postion?(end_position.to_sym)
         a_range = gen_range(start_position, end_position, 'vertical')
 
@@ -149,20 +152,23 @@ class Board
     a_ship.positions.empty?
   end
 
-  def place_fleet
-    random_ship = fleet.sample
-
-    if ship_not_placed?(random_ship)
-
+  def assign_fleet
+    fleet.each do |a_ship|
       case random_direction
       when 'horizontal'
-
-        place_ship_horizontaly(random_ship)
+        place_ship_horizontaly(a_ship)
       when 'vertical'
-        place_ship_verticaly(random_ship)
+        place_ship_verticaly(a_ship)
       end
     end
   end
+
+  def place_fleet(player)
+    fleet.each do |a_ship|
+     a_ship.positions.each { |key| board[key] = (player)}
+   end
+  end
+
 end
 
 class Ship
@@ -180,7 +186,7 @@ end
 # class Player
 #   # attr_accessor
 
-#   def i nitialize
+#   def initialize
 #   end
 # end
 
@@ -197,17 +203,18 @@ end
 
 
 ##TESTS
-player_a = Board.new
-player_b = Board.new
+player_1 = Board.new
+player_2 = Board.new
 
-player_b.gen_fleet
-a_ship = player_b.fleet.sample
+player_1.gen_fleet
+player_1.assign_fleet
+player_1.place_fleet('1')
 
-player_b.place_ship_horizontaly(a_ship)
+player_2.gen_fleet
+player_2.assign_fleet
+player_2.place_fleet('2')
 
-puts
-
-player_b.fleet.each { |object| print "#{object.name}:\nLength - #{object.length}\nPositions - #{object.positions}\n\n" }
+# player_1.fleet.each { |object| print "#{object.name}:\nLength - #{object.length}\nPositions - #{object.positions}\n\n" }
 # player_b.fleet.length
 
 # x = player_b.get_random_position.to_s.chars
@@ -219,8 +226,8 @@ player_b.fleet.each { |object| print "#{object.name}:\nLength - #{object.length}
 
 # p a_ship = Ship.new('carrier', 5)
 
-# puts Logo
-# puts
-# puts display_game(player_a.board_array_representation, player_b.board_array_representation)
+puts Logo
+puts
+puts display_game(player_1.board_array_representation, player_2.board_array_representation)
 
 # print player_a.horizontal_ship_placement
