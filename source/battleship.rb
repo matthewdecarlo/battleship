@@ -74,18 +74,95 @@ class Board
     self.board.keys.sample
   end
 
-  def has_ship?(a_value)
-    a_value == '1'
+  def possible_postion?(a_key)
+    board.has_key?(a_key)
   end
 
-  def remove_ship!(a_ship)
-    self.ships
+  def position_empty?(a_key)
+    checks = []
+
+    fleet.each { |ship| checks << ship.positions.include?(a_key) }
+
+    return false if checks.include?(true)
   end
 
-  def place_ship_horizontaly
-    get_random_position
+  def gen_range(start_position, end_position, direction)
+    horizontal_letter = start_position[0]
+    vertical_number = start_position[1]
+    range = []
+
+    case direction
+    when 'horizontal'
+      (start_position[1].to_i .. end_position[1].to_i).each { |number| range << (horizontal_letter + number.to_s).to_sym }
+    when 'vertical'
+      (start_position[0] .. end_position[0]).each { |letter| range << (letter + vertical_number).to_sym }
+    end
+
+    return range
   end
 
+  def ship_postions_empty?(range)
+    occupied = []
+    range.each { |key| occupied << position_empty?(key)}
+
+    return false if occupied.include?(true)
+  end
+
+  def place_ship_horizontaly(a_ship)
+    print a_ship
+    start_position = get_random_position.to_s
+    end_position = start_position.chars
+    end_position[1] = ( end_position[1].to_i + (a_ship.length - 1) )
+    end_position = end_position.join
+
+    while ship_not_placed?(a_ship)
+      if possible_postion?(end_position.to_sym)
+        a_range = gen_range(start_position, end_position, 'horizontal')
+
+        a_ship.positions = a_range if ship_postions_empty?(a_range)   
+      end
+    end
+  end
+
+  def place_ship_verticaly(a_ship)
+    start_position = get_random_position.to_s
+    letter = start_position[0]
+
+    (a_ship.length - 1).times { letter.next! }
+
+    end_position = letter + start_position[1]
+
+    while ship_not_placed?(a_ship)
+      if possible_postion?(end_position.to_sym)
+        a_range = gen_range(start_position, end_position, 'vertical')
+
+        a_ship.positions = a_range if ship_postions_empty?(a_range)   
+      end
+    end
+  end
+
+  def random_direction
+    ['horizontal', 'vertical'].sample
+  end
+
+  def ship_not_placed?(a_ship)
+    a_ship.positions.empty?
+  end
+
+  def place_fleet
+    random_ship = fleet.sample
+
+    if ship_not_placed?(random_ship)
+
+      case random_direction
+      when 'horizontal'
+
+        place_ship_horizontaly(random_ship)
+      when 'vertical'
+        place_ship_verticaly(random_ship)
+      end
+    end
+  end
 end
 
 class Ship
@@ -124,8 +201,21 @@ player_a = Board.new
 player_b = Board.new
 
 player_b.gen_fleet
-player_b.fleet.each { |object| p "#{object.name} #{object.length}" }
-player_b.fleet.length
+a_ship = player_b.fleet.sample
+
+player_b.place_ship_horizontaly(a_ship)
+
+puts
+
+player_b.fleet.each { |object| print "#{object.name}:\nLength - #{object.length}\nPositions - #{object.positions}\n\n" }
+# player_b.fleet.length
+
+# x = player_b.get_random_position.to_s.chars
+# x[1] = x[1].to_i + 5
+# p x.join
+# player_b.gen_fleet
+# player_b.fleet.each { |object| p "#{object.name} #{object.length}" }
+# player_b.fleet.length
 
 # p a_ship = Ship.new('carrier', 5)
 
