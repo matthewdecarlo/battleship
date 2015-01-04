@@ -10,16 +10,18 @@ Logo = %q"
 🌊 _  /_/ // /_/ // /_ / /_ _  / /  __/(__  )_  / / /  / __  /_/ //_/  ⚓
 ⚓ /_____/ \__,_/ \__/ \__/ /_/  \___//____/ /_/ /_//_/  _  .___/(_)   🌊
 🌊                                                      /_/            ⚓
-⚓ a simple game by matthewwho                                         🌊
+⚓ a simple game by matthewwho + pacoguy                               🌊
   🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓ ️🌊 ⚓️
 "
 
 class Board
-  attr_accessor :board
+  attr_accessor :board, :fleet, :ship_types
 
   def initialize()
     @board = {}
-    ships = [5, 4, 3, 2, 2, 2, 1, 1, 1]
+    @ship_types = {carrier: 5, battleship: 4, cruiser: 3, destroyer: 2, submarine: 1}
+    @fleet = []
+
     gen_board
   end
 
@@ -50,6 +52,10 @@ class Board
     return final_board_array
   end
 
+  def gen_fleet
+    fleet_composition = {carrier: 1, battleship: 1, cruiser: 1, destroyer: 3, submarine: 3}
+  end
+
   def get_random_position
     self.board.keys.sample
   end
@@ -58,11 +64,25 @@ class Board
     a_value == '1'
   end
 
+  def remove_ship!(a_ship)
+    self.ships
+  end
+
   def place_ship_horizontaly
     get_random_position
   end
 
 end
+
+class Ship
+  attr_reader :name, :length
+
+  def initialize(name, length)
+    @name = name
+    @length = length
+  end
+end
+
 
 class Player
   # attr_accessor
