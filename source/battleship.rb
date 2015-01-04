@@ -54,6 +54,20 @@ class Board
 
   def gen_fleet
     fleet_composition = {carrier: 1, battleship: 1, cruiser: 1, destroyer: 3, submarine: 3}
+
+    while fleet_composition.length != 0
+      fleet_composition.each do |key, value|
+        if value == 1
+          a_ship = key
+          fleet_composition.delete(key)
+          fleet << Ship.new(a_ship.to_s, ship_types[a_ship])
+        else
+          a_ship = key
+          fleet_composition[key] -= 1
+          fleet << Ship.new(a_ship.to_s, ship_types[a_ship])
+        end
+      end
+    end
   end
 
   def get_random_position
@@ -75,21 +89,23 @@ class Board
 end
 
 class Ship
+  attr_accessor :positions
   attr_reader :name, :length
 
   def initialize(name, length)
     @name = name
     @length = length
+    @positions = []
   end
 end
 
 
-class Player
-  # attr_accessor
+# class Player
+#   # attr_accessor
 
-  def initialize
-  end
-end
+#   def i nitialize
+#   end
+# end
 
 
 ## Runner
@@ -107,8 +123,14 @@ end
 player_a = Board.new
 player_b = Board.new
 
-puts Logo
-puts
-puts display_game(player_a.board_array_representation, player_b.board_array_representation)
+player_b.gen_fleet
+player_b.fleet.each { |object| p "#{object.name} #{object.length}" }
+player_b.fleet.length
 
-print player_a.horizontal_ship_placement
+# p a_ship = Ship.new('carrier', 5)
+
+# puts Logo
+# puts
+# puts display_game(player_a.board_array_representation, player_b.board_array_representation)
+
+# print player_a.horizontal_ship_placement
