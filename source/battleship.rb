@@ -1,24 +1,8 @@
-Logo = %q"
-  🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓ ️🌊 ⚓️
-⚓  _  _  _  _   __     ____  _  _  __ _  __ _    _  _  _  _           🌊️            
-🌊 / )( \/ )( \ /  \   / ___)/ )( \(  ( \(  / )  ( \/ )( \/ )          ⚓️
-⚓ \ /\ /) __ ((  O )  \___ \) \/ (/    / )  (   / \/ \ )  /_  _  _    🌊️
-🌊 (_/\_)\_)(_/ \__/   (____/\____/\_)__)(__\_)  \_)(_/(__/(_)(_)(_)   ⚓
-⚓ ________       ________________           ______ _____        ______🌊️
-🌊 ___  __ )_____ __  /__  /___  /______________  /____(_)__________  /⚓
-⚓ __  __  |  __ `/  __/  __/_  /_  _ \_  ___/_  __ \_  /___  __ \_  / 🌊
-🌊 _  /_/ // /_/ // /_ / /_ _  / /  __/(__  )_  / / /  / __  /_/ //_/  ⚓
-⚓ /_____/ \__,_/ \__/ \__/ /_/  \___//____/ /_/ /_//_/  _  .___/(_)   🌊
-🌊                                                      /_/            ⚓
-⚓ a simple game by matthewwho + pacoguy                               🌊
-  🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓️ 🌊 ⚓ ️🌊 ⚓ ️🌊 ⚓️
-"
-
 class Board
-  attr_accessor :board, :fleet, :ship_types
+  attr_accessor :board_hash, :fleet, :ship_types
 
   def initialize()
-    @board = {}
+    @board_hash = {}
     @ship_types = {carrier: 5, battleship: 4, cruiser: 3, destroyer: 2, submarine: 1}
     @fleet = []
 
@@ -27,10 +11,10 @@ class Board
 
   def gen_board
     ("A".."J").each do |row|
-      (0..9).each { |column| board.merge!( { "#{row}#{column}".to_sym => '0' } ) }
+      (0..9).each { |column| board_hash.merge!( { "#{row}#{column}".to_sym => '0' } ) }
     end
 
-    return board
+    return board_hash
   end
 
   def board_array_representation
@@ -38,18 +22,30 @@ class Board
     board_array = []
     letter = "A"
 
-    board.each_value { |value| board_array << value }
+    board_hash.each_value { |value| board_array << value }
     final_board_array << "    1 2 3 4 5 6 7 8 9 10 "
     final_board_array << "  +---------------------+"
 
     board_array.each_slice(10) do |row|
-      final_board_array << "#{letter} | " + row.join(" ").gsub(/[012HM]/, '0' => '🌊', '1' => '🚢', '2' => '‼️', 'H' => '📛', 'M' => '😰') + " |"
+      final_board_array << "#{letter} | " + row.join(" ").gsub(/[012HM]/, '0' => '🌊', '1' => '🚢', '2' => '‼️', 'H' => '🔥', 'M' => '🐠') + " |"
       letter.next!
     end
 
     final_board_array << "  +---------------------+"
 
     return final_board_array
+  end
+
+  def get_value(key)
+    board_hash[key]
+  end
+
+  def set_value(key, value)
+    board_hash[key, value]
+  end
+
+  def hit?(value)
+    get_value(value) == '1' or get_value(value) == '2'
   end
 
   def gen_fleet
@@ -71,11 +67,11 @@ class Board
   end
 
   def get_random_position
-    self.board.keys.sample
+    self.board_hash.keys.sample
   end
 
   def possible_postion?(a_key)
-    board.has_key?(a_key)
+    board_hash.has_key?(a_key)
   end
 
   def position_empty?(a_key)
@@ -165,7 +161,7 @@ class Board
 
   def place_fleet(player)
     fleet.each do |a_ship|
-     a_ship.positions.each { |key| board[key] = (player)}
+     a_ship.positions.each { |key| board_hash[key] = (player)}
    end
   end
 
@@ -173,7 +169,7 @@ end
 
 class Ship
   attr_accessor :positions
-  attr_reader :name, :length
+  attr_reader   :name, :length
 
   def initialize(name, length)
     @name = name
@@ -182,52 +178,37 @@ class Ship
   end
 end
 
+class Player
+  @@player_count = 0
 
-# class Player
-#   # attr_accessor
+  attr_accessor :board
+  attr_reader   :name , :number
 
-#   def initialize
-#   end
-# end
+  def initialize(name)
+    @name = name
+    @board = Board.new
 
+    @@player_count += 1
 
-## Runner
-def display_game(first_board, second_board)
-  display = ""
-  
-  (0..first_board.length).each { |line| display << first_board[line].to_s + "          " + second_board[line].to_s + "\n"}
+    @number = @@player_count
+  end
 
-  return display
+  def attack(opponent, position)
+    row = position[0]
+    column = position.length == 2 ? position[-1] : position[-2..-1]
+    column = (column.to_i - 1).to_s
+    position = (row + column).upcase.to_sym
+
+    if opponent.board.possible_postion?(position)
+      opponent.board.board_hash[position] =  opponent.board.hit?(position) ? 'H' : 'M'
+    end
+  end
+
+  def random_attack(opponent)
+    attack(opponent, board.get_random_position)
+  end
+
+  def get_input
+    gets.chomp
+  end
 end
-
-
-
-##TESTS
-player_1 = Board.new
-player_2 = Board.new
-
-player_1.gen_fleet
-player_1.assign_fleet
-player_1.place_fleet('1')
-
-player_2.gen_fleet
-player_2.assign_fleet
-player_2.place_fleet('2')
-
-# player_1.fleet.each { |object| print "#{object.name}:\nLength - #{object.length}\nPositions - #{object.positions}\n\n" }
-# player_b.fleet.length
-
-# x = player_b.get_random_position.to_s.chars
-# x[1] = x[1].to_i + 5
-# p x.join
-# player_b.gen_fleet
-# player_b.fleet.each { |object| p "#{object.name} #{object.length}" }
-# player_b.fleet.length
-
-# p a_ship = Ship.new('carrier', 5)
-
-puts Logo
-puts
-puts display_game(player_1.board_array_representation, player_2.board_array_representation)
-
-# print player_a.horizontal_ship_placement
